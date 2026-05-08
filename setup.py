@@ -7,6 +7,6 @@ setup(
     author="Tushar",
     author_email="tukumawat73@gmail.com",
     packages=find_packages(),
-    install_requires= ['Pymongo']
+    install_requires= ['pymongo']
 
 )
