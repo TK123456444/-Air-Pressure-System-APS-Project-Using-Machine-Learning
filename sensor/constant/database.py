@@ -1,0 +1,2 @@
+DATABASE_NAME = "live"
+COLLECTION_NAME = "sensor"

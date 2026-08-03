@@ -1,3 +1,13 @@
 pymongo
 pandas
+python-dotenv
+scikit-learn
+PyYaml
+dill
+scipy
+imblearn
+numpy
+xgboost==1.6.2
+uvicorn
+
 -e .
