@@ -10,5 +10,6 @@ numpy
 xgboost==1.6.2
 uvicorn
 fastapi
+certifi
 gunicorn
 -e .
