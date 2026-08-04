@@ -16,10 +16,13 @@ class SensorData:
     """
 
     def __init__(self):
+
         try:
+
             self.mongo_client = MongoDBClient(
                 database_name=DATABASE_NAME
             )
+
         except Exception as e:
             raise SensorException(e, sys)
 
@@ -29,13 +32,10 @@ class SensorData:
         collection_name: str,
         database_name: Optional[str] = None
     ):
+
         try:
 
-            print(f"Reading CSV: {file_path}")
-
             data_frame = pd.read_csv(file_path)
-
-            print(f"CSV Shape: {data_frame.shape}")
 
             data_frame.reset_index(
                 drop=True,
@@ -48,27 +48,34 @@ class SensorData:
                 ).values()
             )
 
-            if database_name is None:
-                collection = self.mongo_client.database[
-                    collection_name
-                ]
-            else:
-                collection = self.mongo_client.client[
-                    database_name
-                ][
-                    collection_name
-                ]
+            # ======================================
+            # DATABASE
+            # ======================================
 
-            # Delete old records (optional)
-            collection.delete_many({})
+            if database_name is None:
+
+                collection = (
+                    self.mongo_client.database[
+                        collection_name
+                    ]
+                )
+
+            else:
+
+                collection = (
+                    self.mongo_client.client[
+                        database_name
+                    ][
+                        collection_name
+                    ]
+                )
 
             collection.insert_many(records)
-
-            print(f"Inserted {len(records)} records into MongoDB")
 
             return len(records)
 
         except Exception as e:
+
             raise SensorException(e, sys)
 
     def export_collection_as_dataframe(
@@ -79,44 +86,71 @@ class SensorData:
 
         try:
 
+            # ======================================
+            # DATABASE
+            # ======================================
+
             if database_name is None:
-                collection = self.mongo_client.database[
-                    collection_name
-                ]
-            else:
-                collection = self.mongo_client.client[
-                    database_name
-                ][
-                    collection_name
-                ]
 
-            # If collection is empty, import CSV automatically
-            if collection.count_documents({}) == 0:
-
-                print("MongoDB collection is empty.")
-                print("Importing CSV...")
-
-                self.save_csv_file(
-                    file_path=r"C:\Users\tukum\PYthonvscode\MLproject\aps_failure_training_set1.csv",
-                    collection_name=collection_name,
-                    database_name=database_name
+                collection = (
+                    self.mongo_client.database[
+                        collection_name
+                    ]
                 )
+
+            else:
+
+                collection = (
+                    self.mongo_client.client[
+                        database_name
+                    ][
+                        collection_name
+                    ]
+                )
+
+            # ======================================
+            # FETCH DATA
+            # ======================================
 
             cursor = collection.find()
 
             df = pd.DataFrame(list(cursor))
 
-            if df.empty:
-                raise Exception("MongoDB returned an empty DataFrame.")
+            # ======================================
+            # EMPTY CHECK
+            # ======================================
+
+            if df.shape[0] == 0:
+
+                print("No data found in MongoDB collection")
+
+                return pd.DataFrame()
+
+            # ======================================
+            # DROP _id
+            # ======================================
 
             if "_id" in df.columns:
-                df.drop(columns=["_id"], inplace=True)
 
-            df.replace("na", np.nan, inplace=True)
+                df.drop(
+                    columns=["_id"],
+                    inplace=True
+                )
+
+            # ======================================
+            # REPLACE na
+            # ======================================
+
+            df.replace(
+                "na",
+                np.nan,
+                inplace=True
+            )
 
             print(f"DataFrame Shape: {df.shape}")
 
             return df
 
         except Exception as e:
+
             raise SensorException(e, sys)
